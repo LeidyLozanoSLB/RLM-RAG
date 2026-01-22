@@ -1,0 +1,59 @@
+{
+  "version": "1.0",
+  "created_at": 1769002690.449034,
+  "updated_at": 1769078314.444751,
+  "config_hash": "4c732da28de4da49",
+  "document_count": 10,
+  "documents": {
+    "Alan_Turing": {
+      "hash": "6798203af9d7e720",
+      "size": 1212325,
+      "suffix": ".pdf"
+    },
+    "Claude_Shannon": {
+      "hash": "84c71cbb66bedcb9",
+      "size": 747062,
+      "suffix": ".pdf"
+    },
+    "Deep_learning": {
+      "hash": "dfa9cc05376e1a77",
+      "size": 1336488,
+      "suffix": ".pdf"
+    },
+    "Geoffrey_Hinton": {
+      "hash": "eacee6715bf5a4ba",
+      "size": 594114,
+      "suffix": ".pdf"
+    },
+    "John_von_Neumann": {
+      "hash": "7ba1bca66862bc7e",
+      "size": 1886977,
+      "suffix": ".pdf"
+    },
+    "Machine_learning": {
+      "hash": "c5d88c260a7bb63c",
+      "size": 1017970,
+      "suffix": ".pdf"
+    },
+    "Marvin_Minsky": {
+      "hash": "86a0dd7fbc53148f",
+      "size": 435858,
+      "suffix": ".pdf"
+    },
+    "Neural_network_(machine_learning)": {
+      "hash": "3b2cdaace2212e83",
+      "size": 1418548,
+      "suffix": ".pdf"
+    },
+    "Turing_machine": {
+      "hash": "319b007c86916423",
+      "size": 606878,
+      "suffix": ".pdf"
+    },
+    "Yoshua_Bengio": {
+      "hash": "697a2c9754f3e74b",
+      "size": 405412,
+      "suffix": ".pdf"
+    }
+  }
+}

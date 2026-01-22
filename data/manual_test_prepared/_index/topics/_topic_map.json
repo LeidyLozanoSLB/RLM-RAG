@@ -1,0 +1,101 @@
+{
+  "turing": [
+    "Alan_Turing",
+    "Turing_machine"
+  ],
+  "https": [
+    "Alan_Turing",
+    "Deep_learning",
+    "Geoffrey_Hinton",
+    "John_von_Neumann",
+    "Machine_learning",
+    "Marvin_Minsky",
+    "Neural_network_(machine_learning)",
+    "Yoshua_Bengio"
+  ],
+  "alan": [
+    "Alan_Turing"
+  ],
+  "archive": [
+    "Alan_Turing",
+    "Geoffrey_Hinton",
+    "Machine_learning"
+  ],
+  "http": [
+    "Alan_Turing",
+    "Marvin_Minsky"
+  ],
+  "deep": [
+    "Deep_learning"
+  ],
+  "learning": [
+    "Deep_learning",
+    "Machine_learning",
+    "Neural_network_(machine_learning)",
+    "Yoshua_Bengio"
+  ],
+  "neural": [
+    "Deep_learning",
+    "Neural_network_(machine_learning)"
+  ],
+  "networks": [
+    "Deep_learning",
+    "Neural_network_(machine_learning)"
+  ],
+  "hinton": [
+    "Geoffrey_Hinton"
+  ],
+  "geoffrey": [
+    "Geoffrey_Hinton"
+  ],
+  "retrieved": [
+    "Geoffrey_Hinton",
+    "Yoshua_Bengio"
+  ],
+  "neumann": [
+    "John_von_Neumann"
+  ],
+  "theory": [
+    "John_von_Neumann"
+  ],
+  "john": [
+    "John_von_Neumann"
+  ],
+  "isbn": [
+    "John_von_Neumann"
+  ],
+  "machine": [
+    "Machine_learning",
+    "Turing_machine"
+  ],
+  "data": [
+    "Machine_learning"
+  ],
+  "minsky": [
+    "Marvin_Minsky"
+  ],
+  "marvin": [
+    "Marvin_Minsky"
+  ],
+  "artificial": [
+    "Marvin_Minsky"
+  ],
+  "network": [
+    "Neural_network_(machine_learning)"
+  ],
+  "state": [
+    "Turing_machine"
+  ],
+  "tape": [
+    "Turing_machine"
+  ],
+  "symbol": [
+    "Turing_machine"
+  ],
+  "bengio": [
+    "Yoshua_Bengio"
+  ],
+  "yoshua": [
+    "Yoshua_Bengio"
+  ]
+}

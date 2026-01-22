@@ -1,0 +1,157 @@
+{
+  "documents": [
+    {
+      "id": "Alan_Turing",
+      "title": "Alan Turing",
+      "path": "documents/Alan_Turing.md",
+      "summary_path": "_summaries/Alan_Turing_summary.md",
+      "topics": [
+        "turing",
+        "https",
+        "alan",
+        "archive",
+        "http"
+      ],
+      "section_count": 0,
+      "line_count": 1847,
+      "word_count": 16396,
+      "char_count": 131371
+    },
+    {
+      "id": "Deep_learning",
+      "title": "Deep Learning",
+      "path": "documents/Deep_learning.md",
+      "summary_path": "_summaries/Deep_learning_summary.md",
+      "topics": [
+        "https",
+        "deep",
+        "learning",
+        "neural",
+        "networks"
+      ],
+      "section_count": 0,
+      "line_count": 2275,
+      "word_count": 18162,
+      "char_count": 173612
+    },
+    {
+      "id": "Geoffrey_Hinton",
+      "title": "Geoffrey Hinton",
+      "path": "documents/Geoffrey_Hinton.md",
+      "summary_path": "_summaries/Geoffrey_Hinton_summary.md",
+      "topics": [
+        "https",
+        "hinton",
+        "geoffrey",
+        "retrieved",
+        "archive"
+      ],
+      "section_count": 0,
+      "line_count": 891,
+      "word_count": 6847,
+      "char_count": 61227
+    },
+    {
+      "id": "John_von_Neumann",
+      "title": "John Von Neumann",
+      "path": "documents/John_von_Neumann.md",
+      "summary_path": "_summaries/John_von_Neumann_summary.md",
+      "topics": [
+        "neumann",
+        "https",
+        "theory",
+        "john",
+        "isbn"
+      ],
+      "section_count": 0,
+      "line_count": 2666,
+      "word_count": 23958,
+      "char_count": 183066
+    },
+    {
+      "id": "Machine_learning",
+      "title": "Machine Learning",
+      "path": "documents/Machine_learning.md",
+      "summary_path": "_summaries/Machine_learning_summary.md",
+      "topics": [
+        "https",
+        "learning",
+        "machine",
+        "data",
+        "archive"
+      ],
+      "section_count": 0,
+      "line_count": 1892,
+      "word_count": 15777,
+      "char_count": 137933
+    },
+    {
+      "id": "Marvin_Minsky",
+      "title": "Marvin Minsky",
+      "path": "documents/Marvin_Minsky.md",
+      "summary_path": "_summaries/Marvin_Minsky_summary.md",
+      "topics": [
+        "minsky",
+        "https",
+        "marvin",
+        "http",
+        "artificial"
+      ],
+      "section_count": 0,
+      "line_count": 492,
+      "word_count": 3524,
+      "char_count": 29994
+    },
+    {
+      "id": "Neural_network_(machine_learning)",
+      "title": "Neural Network (Machine Learning)",
+      "path": "documents/Neural_network_(machine_learning).md",
+      "summary_path": "_summaries/Neural_network_(machine_learning)_summary.md",
+      "topics": [
+        "https",
+        "neural",
+        "learning",
+        "networks",
+        "network"
+      ],
+      "section_count": 1,
+      "line_count": 2241,
+      "word_count": 18005,
+      "char_count": 161560
+    },
+    {
+      "id": "Turing_machine",
+      "title": "Turing Machine",
+      "path": "documents/Turing_machine.md",
+      "summary_path": "_summaries/Turing_machine_summary.md",
+      "topics": [
+        "turing",
+        "machine",
+        "state",
+        "tape",
+        "symbol"
+      ],
+      "section_count": 0,
+      "line_count": 1034,
+      "word_count": 9567,
+      "char_count": 61349
+    },
+    {
+      "id": "Yoshua_Bengio",
+      "title": "Yoshua Bengio",
+      "path": "documents/Yoshua_Bengio.md",
+      "summary_path": "_summaries/Yoshua_Bengio_summary.md",
+      "topics": [
+        "https",
+        "bengio",
+        "retrieved",
+        "yoshua",
+        "learning"
+      ],
+      "section_count": 0,
+      "line_count": 452,
+      "word_count": 3294,
+      "char_count": 29972
+    }
+  ]
+}
