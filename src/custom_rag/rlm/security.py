@@ -183,6 +183,46 @@ class ProcessExecutionResult:
     execution_time: float = 0.0
 
 
+def _try_eval_last_expression_subprocess(code: str, namespace: dict) -> str | None:
+    """Try to evaluate the last line as an expression in subprocess context."""
+    import ast
+    import json
+
+    lines = code.strip().split('\n')
+    if not lines:
+        return None
+
+    last_line = lines[-1].strip()
+
+    # Skip if empty, comment, or assignment-like
+    if not last_line or last_line.startswith('#'):
+        return None
+    if '=' in last_line and not any(op in last_line for op in ['==', '!=', '<=', '>=']):
+        return None
+
+    try:
+        ast.parse(last_line, mode='eval')
+    except SyntaxError:
+        return None
+
+    try:
+        result = eval(last_line, namespace)
+        if result is not None:
+            if isinstance(result, (list, dict)):
+                try:
+                    formatted = json.dumps(result, indent=2, default=str)
+                    if len(formatted) > 2000:
+                        formatted = formatted[:2000] + "\n... (truncated)"
+                    return formatted
+                except (TypeError, ValueError):
+                    pass
+            return repr(result)[:2000]
+    except Exception:
+        pass
+
+    return None
+
+
 def _execute_in_subprocess(
     code: str,
     prepared_path: str,
@@ -202,7 +242,6 @@ def _execute_in_subprocess(
     import json
     import re as re_module
     import math as math_module
-    # from pathlib import Path # Not used in snippet but imported in Task description
 
     start = time.time()
     output_buffer: list[str] = []
@@ -210,12 +249,34 @@ def _execute_in_subprocess(
     def _print(*args, **kwargs):
         output_buffer.append(" ".join(str(a) for a in args))
 
+    def _show(value, label=None):
+        """Show helper for subprocess."""
+        if label:
+            output_buffer.append(f"[{label}]")
+        if isinstance(value, (list, dict)):
+            try:
+                formatted = json.dumps(value, indent=2, default=str)
+                if len(formatted) > 3000:
+                    formatted = formatted[:3000] + "\n... (truncated)"
+                output_buffer.append(formatted)
+            except (TypeError, ValueError):
+                output_buffer.append(repr(value)[:3000])
+        elif isinstance(value, str):
+            display = value[:3000] + ("..." if len(value) > 3000 else "")
+            output_buffer.append(display)
+        else:
+            output_buffer.append(repr(value)[:3000])
+        return value
+
     # Build minimal namespace
     # Note: In full implementation, we'd rebuild FilesystemTools here
     # For now, we provide basic functionality
     namespace = {
         # Print capture
         "print": _print,
+
+        # Show helper
+        "show": _show,
 
         # Safe builtins
         "len": len,
@@ -254,9 +315,14 @@ def _execute_in_subprocess(
         compiled = compile(code, "<repl>", "exec")
         exec(compiled, namespace)
 
+        # Auto-echo: try to evaluate last line as expression
+        auto_echo_result = _try_eval_last_expression_subprocess(code, namespace)
+        if auto_echo_result is not None:
+            output_buffer.append(auto_echo_result)
+
         # Extract user-defined variables
         skip_keys = {
-            "print", "len", "str", "int", "float", "bool", "list", "dict",
+            "print", "show", "len", "str", "int", "float", "bool", "list", "dict",
             "set", "tuple", "range", "enumerate", "zip", "sorted", "reversed",
             "min", "max", "sum", "any", "all", "abs", "round",
             "re", "json", "math", "_prepared_path",
@@ -445,6 +511,15 @@ class SecureFilesystemTools:
 
         if not content.startswith("[ERROR"):
             content = self.guard.wrap(content, f"{doc_id}_summary")
+
+        return content
+
+    def read_document(self, doc_id: str, **kwargs) -> str:
+        """Read document with injection wrapping."""
+        content = self.base.read_document(doc_id, **kwargs)
+
+        if not content.startswith("[ERROR"):
+            content = self.guard.wrap(content, doc_id)
 
         return content
 

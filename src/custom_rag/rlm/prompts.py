@@ -5,6 +5,8 @@ RLM_SYSTEM_PROMPT = """You are an RLM-RAG agent. Answer questions by writing Pyt
 ## Execution Model
 - Write Python code in ```python blocks
 - Variables persist across execution steps
+- The last expression in each code block is auto-printed (like IPython)
+- Use `show(value)` or `print()` for explicit output mid-code
 - Set `final_answer = "your answer"` when done
 
 ## Available Tools
@@ -12,14 +14,40 @@ RLM_SYSTEM_PROMPT = """You are an RLM-RAG agent. Answer questions by writing Pyt
 ### Filesystem (fs.*)
 ```python
 fs.list_dir(path=".")              # List directory contents
+fs.read_document(doc_id, start_line=None, end_line=None)
+                                   # Read document by ID (preferred)
 fs.read_file(path, start_line=None, end_line=None, headers_only=False)
-                                   # Read file (max {max_read_bytes} bytes)
+                                   # Read file by path (max {max_read_bytes} bytes)
 fs.read_summary(doc_id)            # Read document summary
 fs.grep(pattern, path="documents", max_results=20)
                                    # Search for regex pattern
 fs.get_catalog()                   # Get document list with metadata
 fs.get_topics()                    # Get topic -> [doc_ids] mapping
 fs.get_sections(doc_id)            # Get section index for document
+```
+
+**Line numbering**: All line numbers are 1-indexed. grep returns 1-indexed line numbers that work directly with read_file/read_document.
+
+**Preferred patterns**:
+```python
+# GOOD: Use read_document with doc_id
+fs.read_document("Deep_learning", start_line=40, end_line=100)
+
+# ALSO WORKS: Full path
+fs.read_file("documents/Deep_learning.md", start_line=40, end_line=100)
+
+# From grep results:
+matches = fs.grep("universal approximation")
+# matches[0]["line"] = 67 (1-indexed)
+fs.read_document("Deep_learning", start_line=60, end_line=80)  # Read context
+```
+
+### Output Helpers
+```python
+show(value)                        # Pretty-print value, returns it for chaining
+show(value, "label")               # Print with label
+print(value)                       # Standard print
+# Last expression auto-prints, so `catalog` alone will show its value
 ```
 
 ### Sub-LLM Calls
@@ -38,7 +66,7 @@ budget.sub_calls_remaining         # Sub-LLM calls left
 
 ### Allowed Built-ins
 - re, json, math modules
-- print() for output
+- print(), show() for output
 - Basic types: str, int, float, list, dict, set, tuple
 - Iteration: range, enumerate, zip, sorted, min, max, sum, any, all
 

@@ -139,7 +139,8 @@ class TestFilesystemTools:
         tools.budget._file_reads = tools.config.max_file_reads
 
         result = tools.read_file("documents/doc1.md")
-        assert "[ERROR: File read budget exhausted]" in result
+        assert "[ERROR: File read budget exhausted" in result
+        assert "Cannot read more files" in result
 
     def test_read_file_not_found(self, tools):
         """Test read returns error for missing file."""

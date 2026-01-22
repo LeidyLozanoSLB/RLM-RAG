@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import json
 import logging
 import re
@@ -192,16 +193,20 @@ class FilesystemTools:
 
         Args:
             path: Relative path within prepared directory
-            start_line: Starting line (0-indexed, inclusive)
-            end_line: Ending line (exclusive)
+            start_line: Starting line (1-indexed, inclusive) - matches grep output
+            end_line: Ending line (1-indexed, inclusive)
             headers_only: If True, only return markdown headers
 
         Returns:
             File content or error message
+
+        Note:
+            Line numbers are 1-indexed to match grep output. Line 1 is the first line.
         """
         # Check budget
         if not self.budget.can_read_file():
-            return "[ERROR: File read budget exhausted]"
+            remaining = self.config.max_file_reads - self.budget._file_reads
+            return f"[ERROR: File read budget exhausted ({self.config.max_file_reads} reads used). Cannot read more files this query.]"
 
         # Validate path
         try:
@@ -210,7 +215,11 @@ class FilesystemTools:
             return f"[ERROR: {e}]"
 
         if not target.exists():
-            return f"[ERROR: File not found: {path}]"
+            # Try to find similar files and suggest
+            suggestions = self._find_similar_files(path)
+            if suggestions:
+                return f"[ERROR: File not found: {path}. Did you mean: {', '.join(suggestions[:3])}?]"
+            return f"[ERROR: File not found: {path}. Use fs.list_dir('documents') to see available files.]"
 
         if not target.is_file():
             return f"[ERROR: Not a file: {path}]"
@@ -227,7 +236,10 @@ class FilesystemTools:
             content = "\n".join(lines)
         elif start_line is not None or end_line is not None:
             lines = content.split("\n")
-            content = "\n".join(lines[start_line:end_line])
+            # Convert 1-indexed to 0-indexed for slicing
+            start_idx = (start_line - 1) if start_line is not None else None
+            end_idx = end_line if end_line is not None else None  # end is exclusive in slice
+            content = "\n".join(lines[start_idx:end_idx])
 
         # Apply byte limit
         if len(content) > self.config.max_read_bytes:
@@ -239,6 +251,58 @@ class FilesystemTools:
         self._accessed_files.append(path)
 
         return content
+
+    def _find_similar_files(self, path: str) -> list[str]:
+        """Find files with similar names to suggest corrections."""
+        suggestions = []
+        stem = Path(path).stem.lower()
+
+        # Search in documents directory
+        docs_dir = self.prepared_path / "documents"
+        if docs_dir.exists():
+            for f in docs_dir.glob("*.md"):
+                if stem in f.stem.lower() or f.stem.lower() in stem:
+                    suggestions.append(f"documents/{f.name}")
+
+        # Search in summaries
+        summaries_dir = self.prepared_path / "_summaries"
+        if summaries_dir.exists():
+            for f in summaries_dir.glob("*.md"):
+                if stem in f.stem.lower():
+                    suggestions.append(f"_summaries/{f.name}")
+
+        return suggestions
+
+    def read_document(
+        self,
+        doc_id: str,
+        start_line: int | None = None,
+        end_line: int | None = None,
+        headers_only: bool = False,
+    ) -> str:
+        """Read a document by its ID (auto-resolves to documents/{doc_id}.md).
+
+        This is a convenience wrapper around read_file that handles path resolution.
+
+        Args:
+            doc_id: Document identifier (e.g., "Deep_learning", "Alan_Turing")
+            start_line: Starting line (1-indexed, inclusive)
+            end_line: Ending line (1-indexed, inclusive)
+            headers_only: If True, only return markdown headers
+
+        Returns:
+            Document content or error message
+
+        Example:
+            fs.read_document("Deep_learning", start_line=40, end_line=100)
+            # Equivalent to: fs.read_file("documents/Deep_learning.md", 40, 100)
+        """
+        # Remove .md extension if provided
+        if doc_id.endswith(".md"):
+            doc_id = doc_id[:-3]
+
+        path = f"documents/{doc_id}.md"
+        return self.read_file(path, start_line, end_line, headers_only)
 
     def read_summary(self, doc_id: str) -> str:
         """Read document summary by ID."""
@@ -258,7 +322,17 @@ class FilesystemTools:
             max_results: Maximum matches to return
 
         Returns:
-            List of {file, line, content} dicts
+            List of {file, line, content} dicts where 'line' is 1-indexed.
+
+        Note:
+            Line numbers are 1-indexed. Use them directly with read_file() or
+            read_document() which also uses 1-indexed lines.
+
+        Example:
+            matches = fs.grep("universal approximation")
+            # matches[0] = {"file": "documents/Deep_learning.md", "line": 67, ...}
+            # To read context around this match:
+            fs.read_document("Deep_learning", start_line=60, end_line=80)
         """
         try:
             target = self._validate_path(path)
@@ -278,7 +352,7 @@ class FilesystemTools:
                     if compiled.search(line):
                         results.append({
                             "file": str(file_path.relative_to(self.prepared_path)),
-                            "line": i + 1,
+                            "line": i + 1,  # 1-indexed to match read_file/read_document
                             "content": line[:200],
                         })
                         if len(results) >= max_results:
@@ -362,6 +436,9 @@ class SimpleREPL:
             # Print capture
             "print": self._capture_print,
 
+            # Show helper - pretty-prints and returns value (for chaining)
+            "show": self._show,
+
             # Safe builtins
             "len": len,
             "str": str,
@@ -399,6 +476,77 @@ class SimpleREPL:
         """Capture print output."""
         self._output.append(" ".join(str(a) for a in args))
 
+    def _show(self, value: Any, label: str | None = None) -> Any:
+        """Show a value (pretty-print) and return it for chaining.
+
+        Usage:
+            show(catalog)  # prints and returns catalog
+            results = show(fs.grep("pattern"), "search results")
+        """
+        if label:
+            self._output.append(f"[{label}]")
+
+        # Pretty-print based on type
+        if isinstance(value, (list, dict)):
+            try:
+                formatted = json.dumps(value, indent=2, default=str)
+                # Truncate if too long
+                if len(formatted) > 3000:
+                    formatted = formatted[:3000] + "\n... (truncated)"
+                self._output.append(formatted)
+            except (TypeError, ValueError):
+                self._output.append(repr(value)[:3000])
+        elif isinstance(value, str):
+            display = value[:3000] + ("..." if len(value) > 3000 else "")
+            self._output.append(display)
+        else:
+            self._output.append(repr(value)[:3000])
+
+        return value
+
+    def _try_eval_last_expression(self, code: str) -> str | None:
+        """Try to evaluate the last line as an expression and return its repr.
+
+        Returns None if the last line is not a standalone expression.
+        """
+        lines = code.strip().split('\n')
+        if not lines:
+            return None
+
+        last_line = lines[-1].strip()
+
+        # Skip if empty, comment, or assignment-like
+        if not last_line or last_line.startswith('#'):
+            return None
+        if '=' in last_line and not any(op in last_line for op in ['==', '!=', '<=', '>=']):
+            # Looks like an assignment, not an expression
+            return None
+
+        # Try to parse as expression
+        try:
+            ast.parse(last_line, mode='eval')
+        except SyntaxError:
+            return None
+
+        # Evaluate and return repr
+        try:
+            result = eval(last_line, self.namespace)
+            if result is not None:
+                # Format the result nicely
+                if isinstance(result, (list, dict)):
+                    try:
+                        formatted = json.dumps(result, indent=2, default=str)
+                        if len(formatted) > 2000:
+                            formatted = formatted[:2000] + "\n... (truncated)"
+                        return formatted
+                    except (TypeError, ValueError):
+                        pass
+                return repr(result)[:2000]
+        except Exception:
+            pass
+
+        return None
+
     def execute(self, code: str) -> ExecutionResult:
         """Execute Python code in the namespace.
 
@@ -407,6 +555,10 @@ class SimpleREPL:
 
         Returns:
             ExecutionResult with output, success status, and updated variables
+
+        Note:
+            Implements REPL-style auto-echo: if the last line is a standalone
+            expression, its value is automatically displayed (like IPython).
         """
         self._output = []
         start_time = time.time()
@@ -421,6 +573,11 @@ class SimpleREPL:
             # Compile and execute
             compiled = compile(code, "<repl>", "exec")
             exec(compiled, self.namespace)
+
+            # Auto-echo: try to evaluate last line as expression
+            auto_echo_result = self._try_eval_last_expression(code)
+            if auto_echo_result is not None:
+                self._output.append(auto_echo_result)
 
             # Find new/updated variables
             new_vars = [
@@ -644,6 +801,19 @@ class RLMAgent:
                         obs += f"\n\nVariables set: {', '.join(result.variables_updated)}"
                 else:
                     obs = f"ERROR: {result.error}"
+
+                # Add budget warnings when resources are running low
+                budget_status = self.budget.get_status()
+                warnings = []
+                if budget_status.file_reads_remaining <= 3:
+                    warnings.append(f"⚠️ File reads: {budget_status.file_reads_remaining} remaining")
+                if budget_status.repl_steps_remaining <= 3:
+                    warnings.append(f"⚠️ REPL steps: {budget_status.repl_steps_remaining} remaining")
+                if budget_status.sub_calls_remaining <= 2:
+                    warnings.append(f"⚠️ Sub-LLM calls: {budget_status.sub_calls_remaining} remaining")
+
+                if warnings:
+                    obs += f"\n\n**Budget Warning**: {', '.join(warnings)}. Consider setting final_answer soon."
 
                 messages.append({"role": "user", "content": f"Observation:\n{obs}"})
 
