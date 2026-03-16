@@ -2,6 +2,9 @@
 
 This guide shows you how to use RLM-RAG in under 5 minutes.
 
+Before running examples, set either `OPENAI_API_KEY` (OpenAI) or
+`AZURE_OPENAI_ENDPOINT` + `AZURE_OPENAI_API_KEY` (Azure OpenAI).
+
 ## Basic Usage
 
 ### 1. Create a RAG Instance

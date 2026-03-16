@@ -65,7 +65,8 @@ pip install -e ".[dev,docs,ui]"
 
 ```bash
 cp .env.example .env
-# Add OPENAI_API_KEY to .env
+# Add OPENAI_API_KEY (OpenAI) or
+# AZURE_OPENAI_ENDPOINT + AZURE_OPENAI_API_KEY (Azure OpenAI) to .env
 ```
 
 ### 3) Run the RLM manual test

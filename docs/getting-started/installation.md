@@ -3,7 +3,9 @@
 ## Requirements
 
 - Python 3.11 or higher
-- OpenAI API key
+- OpenAI-compatible API access:
+  - OpenAI key (`OPENAI_API_KEY`), or
+  - Azure OpenAI endpoint + key (`AZURE_OPENAI_ENDPOINT` + `AZURE_OPENAI_API_KEY`)
 
 ## Using uv (Recommended)
 
@@ -46,11 +48,23 @@ Create a `.env` file in the project root:
 cp .env.example .env
 ```
 
-Add your OpenAI API key:
+Add one provider configuration:
+
+OpenAI:
 
 ```
 OPENAI_API_KEY=sk-your-api-key-here
 ```
+
+Azure OpenAI:
+
+```
+AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
+AZURE_OPENAI_API_KEY=<your-azure-key>
+```
+
+> Azure note: model names must match your Azure deployment names when you set
+> `orchestrator_model` and `worker_model`.
 
 ## Verify Installation
 
