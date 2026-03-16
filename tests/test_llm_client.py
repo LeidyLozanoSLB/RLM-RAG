@@ -173,6 +173,38 @@ class TestLLMClient:
                 config = RLMConfig()
                 LLMClient(config=config, token_usage=TokenUsage())
 
+
+    def test_init_accepts_azure_endpoint_and_key(self, mock_openai):
+        """Test initialization supports Azure OpenAI compatible settings."""
+        mock_openai.return_value = MagicMock()
+
+        with patch.dict(
+            "os.environ",
+            {
+                "AZURE_OPENAI_ENDPOINT": "https://example.openai.azure.com",
+                "AZURE_OPENAI_API_KEY": "azure-test-key",
+            },
+            clear=True,
+        ):
+            config = RLMConfig()
+            LLMClient(config=config, token_usage=TokenUsage())
+
+        mock_openai.assert_called_once_with(
+            api_key="azure-test-key",
+            base_url="https://example.openai.azure.com/openai/v1/",
+        )
+
+    def test_init_azure_endpoint_requires_key(self, mock_openai):
+        """Test Azure endpoint configuration fails without any API key."""
+        with patch.dict(
+            "os.environ",
+            {"AZURE_OPENAI_ENDPOINT": "https://example.openai.azure.com"},
+            clear=True,
+        ):
+            with pytest.raises(ValueError, match="AZURE_OPENAI_API_KEY"):
+                config = RLMConfig()
+                LLMClient(config=config, token_usage=TokenUsage())
+
     def test_chat_circuit_breaker_check(self, client):
         """Test chat checks circuit breaker."""
         # Open the circuit

@@ -221,11 +221,27 @@ class LLMClient:
         self.config = config
         self.token_usage = token_usage
 
-        # Initialize OpenAI client
+        # Initialize OpenAI-compatible client (OpenAI or Azure OpenAI)
         api_key = os.getenv("OPENAI_API_KEY")
-        if not api_key:
-            raise ValueError("OPENAI_API_KEY environment variable not set")
-        self.client = OpenAI(api_key=api_key)
+        azure_api_key = os.getenv("AZURE_OPENAI_API_KEY")
+        azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+
+        if azure_endpoint:
+            if not (azure_api_key or api_key):
+                raise ValueError(
+                    "Set AZURE_OPENAI_API_KEY (or OPENAI_API_KEY) when using AZURE_OPENAI_ENDPOINT"
+                )
+            # Azure OpenAI via OpenAI-compatible endpoint (/openai/v1/)
+            self.client = OpenAI(
+                api_key=azure_api_key or api_key,
+                base_url=azure_endpoint.rstrip("/") + "/openai/v1/",
+            )
+        else:
+            if not api_key:
+                raise ValueError(
+                    "OPENAI_API_KEY environment variable not set (or configure Azure via AZURE_OPENAI_ENDPOINT + AZURE_OPENAI_API_KEY)"
+                )
+            self.client = OpenAI(api_key=api_key)
 
         # Circuit breaker
         self._circuit = CircuitBreaker(CircuitConfig(
